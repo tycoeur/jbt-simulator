@@ -1,0 +1,13 @@
+# Pygame is a free and open-source cross-platform library for the development of multimedia applications
+# like video games using Python.
+pygame >= 2.3.0
+
+# gevent is a coroutine based Python networking library that uses greenlet to provide a high-level synchronous API
+# on top of the libev or libuv event loop
+gevent >= 22.10.2
+
+# Mutagen is a Python module to handle audio metadata.
+mutagen >= 1.46.0
+
+# NumPy is the fundamental package for scientific computing with Python.
+numpy  >= 1.24.2

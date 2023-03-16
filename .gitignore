@@ -14,4 +14,4 @@ __pycache__/
 /scopes/scope_settings.xml
 !/templateLanguages.xml
 !/vcs.xml
-
+local/

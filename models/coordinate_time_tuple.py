@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
+from typing import Final
 
 
 class CoordinateTimeTuple(object):
-    def __init__(self, coordinate, time):
-        self.coordinate = coordinate
-        self.time = time
+    def __init__(self, coordinate: str, time: str):
+        self.coordinate: Final[str] = coordinate
+        self.time: Final[str] = time
 
-    def to_string(self):
-        return "CoordinateTimeTuple[%s, %s]" % (self.coordinate, self.time)
+    def __str__(self):
+        return f"CoordinateTimeTuple[{self.coordinate}, {self.time}]"
+
+    def __repr__(self):
+        return f"({self.coordinate}, {self.time})"
 
     def print(self):
-        print(self.to_string())
+        print(str(self))

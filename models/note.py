@@ -2,11 +2,11 @@
 
 
 class Note(object):
-    def __init__(self, note, t, positions, bpm):
-        self.note = note
-        self.t = t
-        self.positions = positions
-        self.bpm = bpm
+    def __init__(self, note: str, t: int, positions: list[int], bpm: float):
+        self.note: str = note
+        self.t: int = t
+        self.positions: list[int] = positions
+        self.bpm: float = bpm
 
     def to_string(self):
         return "Note[%s, %d, %s, %.4f]" % (self.note, int(self.t), self.positions, self.bpm)

@@ -2,15 +2,16 @@
 import glob
 import math
 import sys
+from typing import Final
 
 import numpy as np
 import pygame
+from pygame.locals import *
 from mutagen.mp3 import MP3
 
 from utils import processing_measure
 from gevent import os
-from pygame.locals import *
-from utils.chart_analyzer import load, get_marker_frames
+from utils.chart_analyzer import fumen_load, get_marker_frames
 
 
 def split_image(image):
@@ -37,28 +38,29 @@ def get_nearest_value(list, num):
 
 
 @processing_measure.measure
-def get_makers(maker_path_list):
+def get_makers(maker_path_list: list[str]):
     makers = [split_image(pygame.image.load(maker_frame).convert_alpha()) for maker_frame in maker_path_list]
-    if len(makers) <= 0:
+    if not makers:
         raise TypeError('maker images not found.')
     return makers
 
 
 @processing_measure.measure
-def play(music, fumen):
+def play(music: str, fumen: str):
     screen = pygame.display.get_surface()
     clock = pygame.time.Clock()
     makers = get_makers(glob.glob(os.path.join('img', 'makers', '*.png')))
     background = pygame.image.load(os.path.join('img', 'babckgroundimages', 'blue.png')).convert()
     handclap = pygame.mixer.Sound('soundeffects/handclap.wav')
     font = pygame.font.Font(None, 24)
-    notes, offset = load(fumen)
+    notes, offset = fumen_load(fumen)
 
-    PANEL_POSITIONS = [(y, x)
-                       for x in range(0, WINDOW_W, PANEL_SIZE + PANEL_GAP)
-                       for y in range(0, WINDOW_H, PANEL_SIZE + PANEL_GAP)]
+    # TODO warning, changed x and y
+    PANELS: Final[list[Rect]] = [Rect(x, y, PANEL_SIZE, PANEL_SIZE)
+                                 for x in range(0, WINDOW_W, PANEL_SIZE + PANEL_GAP)
+                                 for y in range(0, WINDOW_H, PANEL_SIZE + PANEL_GAP)]
 
-    TRACK_END = USEREVENT + 1
+    TRACK_END: Final[int] = USEREVENT + 1
     pygame.mixer.music.set_endevent(TRACK_END)
     pygame.mixer.music.load(music)
     pygame.mixer.music.play()
@@ -70,29 +72,40 @@ def play(music, fumen):
 
     maker_index = 0
 
+    BLACK: Final[Color] = (0, 0, 0)
+    WHITE: Final[Color] = (255, 255, 255)
     while True:
         diff_time = pygame.time.get_ticks() - start_time
         clock.tick(30)
-        screen.fill((0, 0, 0))
 
+        # ----------------------------------------------------------------------
+        # Draw background
+        # ----------------------------------------------------------------------
+        screen.fill(BLACK)
         bpm_time = 60 * 1000 / bpm  # 現在のbpmにおける拍動アニメーション時間
         scale = 1 + (math.cos(math.pi / 2 / bpm_time * ((diff_time + offset) % bpm_time))) / 10
         anim_background = pygame.transform.rotozoom(background, 0, scale)
         anim_x = (WINDOW_W - anim_background.get_width()) / 2
         anim_y = (WINDOW_H - anim_background.get_height()) / 2
-
-        for (y, x) in PANEL_POSITIONS:
-            screen.set_clip(x, y, PANEL_SIZE, PANEL_SIZE)
+        for panel in PANELS:
+            screen.set_clip(panel)
             screen.blit(anim_background, (anim_x, anim_y))
 
-        for (positions, frame) in get_marker_frames(notes, diff_time):
+        # ----------------------------------------------------------------------
+        # Draw panels
+        # ----------------------------------------------------------------------
+        positions: list[int]
+        frame: int
+        for positions, frame in get_marker_frames(notes, diff_time):
             for position in positions:
-                x, y = PANEL_POSITIONS[position - 1]
-                screen.set_clip(x, y, PANEL_SIZE, PANEL_SIZE)
-                screen.blit(makers[0][frame], (x, y))
+                panel = PANELS[position - 1]
+                screen.set_clip(panel)
+                screen.blit(makers[maker_index][frame], (panel[0], panel[1]))
+        screen.set_clip(None)
 
-        screen.set_clip()
-
+        # ----------------------------------------------------------------------
+        # Process inputs
+        # ----------------------------------------------------------------------
         for event in pygame.event.get():
             if event.type == QUIT:
                 return
@@ -100,26 +113,31 @@ def play(music, fumen):
                 pygame.mixer.music.stop()
                 pygame.mixer.music.play()
                 start_time = pygame.time.get_ticks()
-            if event.type == MOUSEBUTTONDOWN and event.button == 1:
-                x, y = event.pos
-                set_time = x * MP3(music).info.length / WINDOW_W  # sec
-                pygame.mixer.music.play(0, set_time)
-                start_time = pygame.time.get_ticks() - set_time * 1000
+            if event.type == MOUSEBUTTONDOWN:
+                if event.button == 1:
+                    x, y = event.pos
+                    set_time = x * MP3(music).info.length / WINDOW_W  # sec
+                    pygame.mixer.music.play(0, set_time)
+                    start_time = pygame.time.get_ticks() - set_time * 1000
             if event.type == KEYDOWN:
-                if event.key == K_LEFT:
-                    pass
-                if event.key == K_RIGHT:
-                    pass
                 if event.key == K_UP:
-                    print('K_UP')
+                    maker_index += 1
+                    maker_index %= len(makers)
+                    print(maker_index)
                 if event.key == K_DOWN:
-                    print('K_DOWN')
+                    maker_index -= 1
+                    maker_index %= len(makers)
+                    print(maker_index)
 
-        screen.blit(
-            font.render('%.2f' % clock.get_fps(), True, (255, 255, 255)), (8, 8))
+        # ----------------------------------------------------------------------
+        # FPS and music progression
+        # ----------------------------------------------------------------------
+        screen.blit(font.render(f'{clock.get_fps():.2f}', True, WHITE), dest=(8, 8))
+        screen.blit(font.render(f'{int(100 * diff_time / music_length)} %', True, WHITE), dest=(8, 24))
 
-        screen.blit(
-            font.render('%d %%' % (int(100 * diff_time / music_length)), True, (255, 255, 255)), (8, 24))
+        # ----------------------------------------------------------------------
+        # Draw everything
+        # ----------------------------------------------------------------------
         pygame.display.update()
 
 
@@ -132,9 +150,15 @@ def pygame_init():
 
 
 if __name__ == "__main__":
-    WINDOW_W, WINDOW_H, PANEL_SIZE, PANEL_GAP = (512, 512, 110, 24)
-    if len(sys.argv) == 3:
+    WINDOW_W, WINDOW_H, PANEL_SIZE, PANEL_GAP = 512, 512, 110, 24
+    if len(sys.argv) == 1:
+        pygame_init()
+        play('music/Our Faith.mp3', 'fumen/sample.jbt')
+        pygame.quit()
+    elif len(sys.argv) == 3:
         pygame_init()
         play(sys.argv[1], sys.argv[2])
+        pygame.quit()
     else:
-        print('Invalid argument error!!')
+        print("Invalid argument error!!")
+        sys.exit(1)
