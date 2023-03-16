@@ -55,7 +55,7 @@ def play(music: str, fumen: str):
     font = pygame.font.Font(None, 24)
     notes, offset = fumen_load(fumen)
 
-    # TODO warning, changed x and y
+    # TODO warning, changed x and y, check I did not destroy the code :)
     PANELS: Final[list[Rect]] = [Rect(x, y, PANEL_SIZE, PANEL_SIZE)
                                  for x in range(0, WINDOW_W, PANEL_SIZE + PANEL_GAP)
                                  for y in range(0, WINDOW_H, PANEL_SIZE + PANEL_GAP)]

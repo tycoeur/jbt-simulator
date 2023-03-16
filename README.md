@@ -1,67 +1,64 @@
 ## jbt-simulator
-<img src="https://github.com/mzkii/jbt-simulator/blob/master/img/icon.png" width="128px">
+<img src="img/icon.png" width="128px">
 
-[#memo2](http://yosh52.web.fc2.com/jubeat/fumenformat.html) 形式の譜面を mac/windows 上で再生するシミュレータです．
+It is a simulator that plays musical scores in the format on mac/windows.
 
 ## Demo
-<img src="https://github.com/mzkii/jbt-simulator/blob/master/screenshots/sample01.png" width="512px">
+<img src="screenshots/sample01.png" width="512px">
 
 ## Example
 
-### 譜面と楽曲を準備する
-[#memo2](http://yosh52.web.fc2.com/jubeat/fumenformat.html) 形式の譜面と，それに対応するMP3ファイルを用意してください．
-
-譜面データは [cosmos memo](https://www53.atwiki.jp/cosmos_memo/) さんのサイトが参考になります．
-
-### 環境
-- python 3.6.0
-
-- pygame 1.9.3
-
-- gevent 1.3.3
-
-- greenlet 0.4.13
-
-- mutagen 1.40.0
-
-- numpy 1.14.5
-
-#### 注意
-mac 環境下で,pyanvやanacondaを使って環境構築している場合，
-
-pygameはキーボードイベントを取得することができません．
+### Prepare sheet music and music
+Please prepare the musical score in the [fumen format #memo2](http://yosh52.web.fc2.com/jubeat/fumenformat.html) 
+and the MP3 file corresponding to it.
 
 
-### 実行
+Your site [cosmos memo](https://www53.atwiki.jp/cosmos_memo/) for sheet music data will be helpful．
 
-`main.py` 実行時に `楽曲ファイル` `譜面ファイル` の順にパスを渡します．
+### Environment
+- python 3.10.5
+- pygame 2.3.0
+- gevent 22.10.2
+- mutagen 1.46.0
+- numpy 1.24.2
 
-譜面ファイルのフォーマットは `utf-8` のテキストファイルです．
+#### Notice
+If you are building an environment using pyenv or anaconda under the mac environment,
+pygame can't get keyboard events.
 
-ホールド譜面は現在非対応です．
+### Execution
 
-```
-$ python main.py music/hogehoge.mp3 fumen/fugafuga.jbt
+When running `main.py`, pass the paths in this order: `music file` and `score file`.
+
+The music file format is `utf-8` text file.
+
+Hold sheet music is currently not supported.
+
+```shell
+python main.py music/hogehoge.mp3 fumen/fugafuga.jbt
 ```
 
-### 機能
+### Function
 
-#### 楽曲シーク
+#### Song seek
 
-画面の横軸が，楽曲の再生位置とリンクしています．
+The horizontal axis of the screen is linked to the playback position of the music.
 
-楽曲の再生時間を100%として，画面左端をタップすると0%の位置へ，中央をタップすると50%の位置へ，右端をタップすると100%の位置へシークします．
+The playback time of the song is set to 100%, 
+* tapping the left end of the screen seeks to the 0% position, 
+* tapping the center seeks to the 50% position, 
+* tapping the right end seeks to the 100% position.
 
-楽曲の再生位置を移動すると同時に，マーカーの再生位置も自動的に修正されます．
+At the same time as moving the playback position of the music, 
+the playback position of the marker is also automatically corrected.
 
-## [WIP] 機能👷
-基本的に，jubeatLab に準拠する．
-- 譜面再生
-  - 任意倍速，シーク
-- 譜面作成
+## [WIP] Function 👷
+Basically, it conforms to jubeatLab.
+- Music playback
+  - Arbitrary speed, seek
+- Music notation
 
-
-## [WIP] jubeat-memo 形式から譜面を再生するアルゴリズム
+## [WIP] Algorithm for playing music from jubeat-memo format
 ```
 2
 
@@ -74,13 +71,13 @@ $ python main.py music/hogehoge.mp3 fumen/fugafuga.jbt
 口②口口 |③ー④ー|
 ```
 
-- **|** から **|** までを **1拍** と呼ぶ
+- From **|** to **|** is called **1 beat**
 
-- 1拍が **4つ分** で **1小節** になる <-- ここ重要
-  - あくまでも4拍で1小節なので，小節の手前にある小節数(2とか16とか)は構文解析には関係ない．
-  - 単に編集時に見やすくするために付け加えているだけ．
-  - 以下の例では，この小節を構成する条件を利用して，4行で位置情報を定義できない場合に，分割して表現している．
-    - ⑭は③と位置が重なっているため，16小節目を2小節分に分けて表現している．**しかし，生成される小節データは①小節分である．**
+- 1 beat is **4 beats** and **1 bar** <-- important here
+  - Since one measure is 4 beats, the number of measures (2, 16, etc.) before the measure is irrelevant for parsing.
+  - It's just added to make it easier to see when editing.
+  - In the example below, using the conditions that make up this bar, when the position information cannot be defined in four lines, it is divided and expressed.
+    - Since the position of ⑭ overlaps with ③, the 16th measure is divided into two measures. **However, the generated bar data is for ① bar.** 
 
 ```
 16
@@ -96,13 +93,13 @@ $ python main.py music/hogehoge.mp3 fumen/fugafuga.jbt
 ```
 
  
-## 譜面を構成する型
-### Note型
-- 譜面を構成する最小単位
+## Forms that compose a musical score
+### Note type
+- The smallest unit that composes a musical score
 - Note(note: String, t: Double, position: Int, bpm: Double)
-- note; その小節におけるノーツを特定するための Key (①, ②, ...)
-- bpm; そのノーツが出現する際のBPM
-- t; そのノーツが，現在の小節内において，ノーツをタップすべき時間
+- note; Key (①, ②, ...) to identify the note in that measure
+- bpm; BPM at which the note appears
+- t; the time the note should be tapped in the current bar
 
 ```
 2
@@ -116,17 +113,17 @@ t=60
 口②口口 |③ー④ー|
 ```
 
-  - 上記2小節目の①ノーツの例
+  - Example of ① notes in the second bar above
 ```
-bpm が 60 なので，1分間に 60 拍存在することになる．
+Since the bpm is 60, there are 60 beats per minute.
 
-すなわち一拍あたり 1000ms， 1ノーツあたり 250ms，
+That is, 1000ms per beat, 250ms per note,
 
-すなわち①ノーツは Note(①, 250, 4, 60) と求まる．
+In other words, ① Notes is determined as Note(①, 250, 4, 60).
 ```
-- position; そのノーツが表示すべきパネル番号(1~16)
+- position; Panel number (1-16) that the note should display
 ```
-パネル番号対応表;
+Panel number correspondence table;
 
 01  02  03  04
 05  06  07  08
@@ -134,27 +131,27 @@ bpm が 60 なので，1分間に 60 拍存在することになる．
 13  14  15  16
 ```
 
-### Measure型
-- Note型 の集合体
+### Measure type
+- collection of Note types
 - Measure(measure: Int, notes: List < Note >)
-- measure; 何小節目か
-- notes; measure 小節目に出現する Note 型の配列
+- measure; how many bars
+- notes; measure Array of Note type that appears in the bar
 
-### Chart型
-- Measure型 の集合体
-- 譜面の全体を構成する
+### Chart type
+- collection of Measure
+- Compose the entire score
 - Chart(difficulty: Difficulty, level: Int, measures: List < Measure >)
-- difficulty; 難易度(BASIC or ADVANCED or EXTREME)
-- level; レベル(lv1 ~ lv10)
-- measures; 小節の配列
+- difficulty; Degree of difficulty (BASIC or ADVANCED or EXTREME)
+- level; lv1 to lv10
+- measures; Array of bars
 
-### Music型
-- 楽曲情報を保持
-- 楽曲データに対して1対1に対応する
+### Music type
+- Hold song information
+- One-to-one correspondence with music data
 - Music(title: String, artist: String, charts: List < Chart >)
-- title; 楽曲名
-- artist; アーティスト名
-- charts; 楽曲データ1曲分に対応する譜面データ(基本的には3難易度分存在する)
+- title; song name
+- artist; artist name
+- charts; Musical score data corresponding to one song data (basically there are 3 difficulty levels)
 
 ```
 >> music.print()
@@ -214,13 +211,12 @@ Note(③, 750.0000, 03, 160.0000)
 )
 --------------------------------
 )
-
-Process finished with exit code 0
 ```
-## 解析アルゴリズム
-- とりあえず，譜面ファイルを一行づつ読んでいく
-- 以下の例の2小節目のデータを読んでいくことを考える
-- ちなみに，ノーツデータが生成されるタイミングは2つある
+
+## Analysis algorithm
+- For now, read the score file line by line
+- Consider reading the data in the second bar of the example below.
+- By the way, there are two timings when Notes data is generated.
 ```
 2
 t=60
@@ -232,23 +228,30 @@ t=60
 
 口②口口 |③ー④ー|
 ```
-- 上の④では，**盤面データからノーツデータを生成** することになる．④が最初に出現した段階では，表示位置は6番パネルという情報は把握できるが，表示時間は未確定の状態である．すなわち Note(④, None, 6, 60) となる．Noneは未確定という意味．
+- In step ④ above, **notes data is generated from board data**. 
+  When ④ first appears, the information that the display position is the 6th panel can be grasped, 
+  but the display time is in an undetermined state. 
+  That is, Note(④, None, 6, 60). None means undetermined.
 
-- 上の②では，**時間データからノーツデータを生成** することになる．②が最初に出現した段階では，表示時間は **11x250=2750ms** という情報は把握できるが，表示位置は未確定の状態である．すなわち Note(②, 2750, None 60) となる．Noneは未確定という意味．
+- In ② above, **notes data is generated from time data**. When ② first appears, 
+  the information that the display time is **11x250=2750ms** can be grasped, but the display position is in an undetermined state. 
+  That is, Note(②, 2750, None 60). None means undetermined.
 
-## fumen/sample.jbt を解析してみる
-jbt-simulator 内では，一小節ごとを measure(配置データ，タイミングデータ) として表現し，
+## Analyze [fumen/sample.jbt](fumen/sample.jbt)
+In jbt-simulator, each bar is expressed as a measure (placement data, timing data),
 
-譜面一枚あたり measures という measure の配列で管理する．
+Each music sheet is managed by an array of measures called measures.
 
-例えば， sample.jbt の出力結果中の2小節目の譜面データを読み込むとすれば以下のようになる．
+For example, if the score data of the second measure in the output result of `sample.jbt` is read, 
+it will be as follows.
 ```
 2 ['口口口①口④口口口口③口口②口口', ['①ーーー', 'ーーーー', 'ーー②ー', '③ー④ー']]
 ```
 
-以下は，fumen/sample.jbtを読み込んで解析した結果．
-len(measures)は 81 となり， sample.jbt の小節数と一致する．
-15小節目のように，複数小節分にまたがって一小節を表現した場合は，自動的に配置データが連結される．
+Below is the result of reading and analyzing `fumen/sample.jbt`.
+len(measures) becomes 81, match the number of bars in `sample.jbt`.
+When one measure is expressed across multiple measures like the 15th measure, 
+the placement data is automatically linked.
 
 ```
 1 ['口口口口口口口口口口口口口口口口', ['ーーーー', 'ーーーー', 'ーーーー', 'ーーーー']]
@@ -332,5 +335,4 @@ len(measures)は 81 となり， sample.jbt の小節数と一致する．
 79 ['⑪④⑤⑫口⑬⑩③②⑨⑧口⑦⑥①⑭', ['①②③④', '⑤⑥ー⑦', '⑧⑨⑩⑪', 'ー⑫⑬⑭']]
 80 ['⑪①④⑫⑤⑮⑭⑧⑬⑨⑩②⑦③⑥⑯口⑰⑳口口口口口口口口⑱口⑲口口', ['①②③④', '⑤⑥⑦⑧', '⑨⑩⑪⑫', '⑬⑭⑮⑯⑰⑱⑲⑳']]
 81 ['口口口口①口口口口口口口口口口口', ['①ーーー', 'ーーーー', 'ーーーー', 'ーーーー']]
-elapsed_time:0.004356861114501953[sec]
 ```

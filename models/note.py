@@ -2,9 +2,9 @@
 
 
 class Note(object):
-    def __init__(self, note: str, t: int, positions: list[int], bpm: float):
+    def __init__(self, note: str, t: float, positions: list[int], bpm: float):
         self.note: str = note
-        self.t: int = t
+        self.t: float = t
         self.positions: list[int] = positions
         self.bpm: float = bpm
 
